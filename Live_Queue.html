@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Q-now | Live Queue Status</title>
+
+  <!-- =========================
+       CSS Styles
+       ========================= -->
+  <style>
+    /* =========================
+       Theme Variables
+       ========================= */
+    :root {
+      --primary: #0077cc;       /* Brand color */
+      --primary-dark: #005fa3;  /* Darker shade for hover effects */
+      --accent: #00aaff;        /* Accent color */
+      --light-bg: #f5f7fa;      /* Page background */
+      --card-bg: #ffffff;        /* Card background */
+      --radius: 10px;            /* Rounded corners */
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.08); /* Card shadow */
+      --text: #333;              /* Primary text color */
+      --text-light: #555;        /* Secondary text */
+      --transition: all 0.25s ease; /* Smooth transitions */
+    }
+
+    /* =========================
+       Global Styles
+       ========================= */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      animation: fadeInBody 0.8s ease;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      animation: slideDown 0.6s ease;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    nav a:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 25px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(15px);
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    h2 {
+      color: var(--primary-dark);
+      margin-bottom: 1rem;
+    }
+
+    #queuesList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .queue-item {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    .queue-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+      background: #f0f8ff;
+    }
+
+    .queue-item b {
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+    }
+
+    .status-open {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .status-closed {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .small {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      background: #eef3f8;
+      color: #666;
+      font-size: 0.9rem;
+      animation: fadeInBody 1.2s ease;
+    }
+
+    /* =========================
+       Animations
+       ========================= */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInBody {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- =========================
+       Header
+       ========================= -->
+  <header>
+    <h1>Live Queue Status</h1>
+    <nav>
+      <a href="Q-Now.html">Home</a>
+      <a href="Appointments.html">Appointments</a>
+      <a href="Analytics.html">Analytics</a>
+      <a href="Scan.html">Scan MediCard</a>
+    </nav>
+  </header>
+
+  <!-- =========================
+       Main Section: List of Queues
+       ========================= -->
+  <main>
+    <section>
+      <h2>My Establishments & Counters</h2>
+      <div id="queuesList">
+        <!-- Placeholder text while loading queues -->
+        <p>Loading active queues...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================
+       Footer
+       ========================= -->
+  <footer>
+    <p>&copy; 2025 Q-now. All rights reserved.</p>
+  </footer>
+
+  <!-- =========================
+       Firebase SDK (Compat) for Realtime Database & Auth
+       ========================= -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <script>
+    // =========================
+    // Firebase configuration
+    // =========================
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-VDEzKeVVpOwE7rds6ofNsKvxK3mWIlE",
+      authDomain: "q-now-7d98a.firebaseapp.com",
+      databaseURL: "https://q-now-7d98a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "q-now-7d98a",
+      storageBucket: "q-now-7d98a.firebasestorage.app",
+      messagingSenderId: "72096271594",
+      appId: "1:72096271594:web:b86777a11af444aac49b93"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // Reference to the DOM element for displaying queues
+    const queuesList = document.getElementById("queuesList");
+
+    // =========================
+    // Listen for authentication changes
+    // =========================
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        // User not logged in
+        queuesList.innerHTML = "<p>Please log in first.</p>";
+        return;
+      }
+
+      // Listen for all establishments in database
+      db.ref("establishments").on("value", snapshot => {
+        queuesList.innerHTML = ""; // Clear previous content
+
+        if (!snapshot.exists()) {
+          queuesList.innerHTML = "<p>No establishments yet.</p>";
+          return;
+        }
+
+        // Loop through each establishment
+        snapshot.forEach(estSnap => {
+          const estData = estSnap.val();
+          const estId = estSnap.key;
+
+          // Only show establishments owned by current user
+          if (estData.ownerId !== user.uid) return;
+
+          const estName = estData.companyName || estData.name || "Unnamed Establishment";
+
+          // Loop through counters if they exist
+          if (estData.counters) {
+            Object.entries(estData.counters).forEach(([counterId, counter]) => {
+              const counterName = counter.name || "Unnamed Counter";
+              const accepting = !!counter.accepting;
+
+              let serving = null;
+              let waitingCount = 0;
+
+              // Count serving and waiting customers
+              if (counter.queue) {
+                Object.values(counter.queue).forEach(entry => {
+                  if (entry.status === "in_service") serving = entry;
+                  if (entry.status === "waiting") waitingCount++;
+                });
+              }
+
+              // Create a DOM element for this counter
+              const div = document.createElement("div");
+              div.className = "queue-item";
+
+              let statusHtml = accepting
+                ? `<span class="status-open">OPEN</span>`
+                : `<span class="status-closed">CLOSED</span>`;
+
+              let servingHtml = "";
+              if (serving) {
+                servingHtml = `<br><span class="small">Now Serving: ${serving.patientName || "Unknown"} (${serving.age || "?"} y/o)</span>`;
+              } else {
+                servingHtml = `<br><span class="small">Waiting: ${waitingCount} in queue</span>`;
+              }
+
+              div.innerHTML = `
+                <b>${estName} - ${counterName}</b><br>
+                Status: ${statusHtml}
+                ${servingHtml}
+              `;
+
+              // Make each counter clickable to go to its detail page
+              div.onclick = () => {
+                window.location.href = `counter.html?estId=${estId}&counterId=${counterId}`;
+              };
+
+              queuesList.appendChild(div);
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

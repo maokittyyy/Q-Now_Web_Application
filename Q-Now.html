@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Q-now Admin Dashboard</title>
+
+  <style>
+    /* --- Color and UI variables --- */
+    :root {
+      --primary: #0077cc;
+      --primary-dark: #005fa3;
+      --accent: #00aaff;
+      --light-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #333;
+      --text-light: #555;
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      --radius: 10px;
+      --transition: all 0.25s ease;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      animation: fadeInBody 0.8s ease;
+    }
+
+    /* --- Header and navigation --- */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      animation: slideDown 0.6s ease;
+    }
+
+    header h2 { margin: 0; font-size: 1.3rem; letter-spacing: 0.5px; }
+
+    nav a {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    nav a:hover { color: var(--accent); transform: translateY(-2px); }
+
+    /* --- Main container for content --- */
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 25px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(15px);
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    /* Hero section */
+    .hero { text-align: center; margin-bottom: 2rem; }
+    .hero h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .hero p { font-size: 1.1rem; color: var(--text-light); }
+
+    /* Card layout for features */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: var(--transition);
+      opacity: 0;
+      transform: translateY(15px);
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h3 { color: var(--primary-dark); margin-bottom: 0.5rem; }
+    .card p { color: var(--text-light); margin-bottom: 1rem; }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 18px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 119, 204, 0.3);
+    }
+
+    /* --- Establishment cards --- */
+    #establishmentsList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .establishment-card {
+      background: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      text-align: center;
+      transition: var(--transition);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .establishment-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .establishment-card a {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .establishment-card a:hover { background: var(--primary-dark); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      background: #eef3f8;
+      color: #666;
+      font-size: 0.9rem;
+      animation: fadeInBody 1.2s ease;
+    }
+
+    /* Dropdown menu for user account */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-toggle { cursor: pointer; background: transparent; color: white; border: none; font-weight: 500; transition: var(--transition); }
+    .dropdown-toggle:hover { color: var(--accent); transform: translateY(-1px); }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      min-width: 150px;
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow: hidden;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .dropdown-menu a {
+      display: block;
+      padding: 10px;
+      color: #333;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .dropdown-menu a:hover { background: #f0f7ff; color: var(--primary-dark); }
+
+    /* --- Animations --- */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInBody { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <!-- Header and navigation -->
+  <header>
+    <h2>Q-now Admin</h2>
+    <nav>
+      <a href="Live_Queue.html">Live Queue</a>
+      <a href="Appointments.html">Appointments</a>
+      <a href="Analytics.html">Analytics</a>
+      <a href="Scan.html">Scan MediCard</a>
+      <!-- User dropdown menu -->
+      <div class="dropdown">
+        <a id="authLink" class="dropdown-toggle" href="Login.html">Login / Signup</a>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <a href="#" id="logoutButton">Log Out</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main dashboard container -->
+  <div class="container">
+    <!-- Hero section -->
+    <section class="hero">
+      <h2>Welcome to Q-now Admin Dashboard</h2>
+      <p>Manage queues, appointments, and analytics for your healthcare facility with ease.</p>
+    </section>
+
+    <!-- Establishments section -->
+    <h2>Your Establishments</h2>
+    <div id="establishmentsList"><em>Loading...</em></div>
+    <div style="text-align:center;">
+      <a href="New_Establishment.html" class="btn">+ New Establishment</a>
+    </div>
+  </div>
+
+  <!-- Features overview -->
+  <div class="container">
+    <h2>Key Features</h2>
+    <ul>
+      <li>📊 Real-time queue tracking</li>
+      <li>⚡ Smart appointment scheduling</li>
+      <li>🏥 Multi-department and counter management</li>
+      <li>📈 Analytics on wait times and service efficiency</li>
+    </ul>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Live Queue Status</h3>
+        <p>Track real-time queue updates across departments and counters.</p>
+        <a href="Live_Queue.html" class="btn">View Queues</a>
+      </div>
+      <div class="card">
+        <h3>Establishment Management</h3>
+        <p>Add new facilities, set up services, and configure counters.</p>
+        <a href="New_Establishment.html" class="btn">New Establishment</a>
+      </div>
+      <div class="card">
+        <h3>Analytics Overview</h3>
+        <p>View average wait times, peak hours, and feedback trends.</p>
+        <a href="Analytics.html" class="btn">View Analytics</a>
+      </div>
+      <div class="card">
+        <h3>MediCard Scanning</h3>
+        <p>Seamlessly access crucial patient information through the Q-Now MediCard system.</p>
+        <a href="Scan.html" class="btn">View Analytics</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Q-now. All rights reserved.</p>
+  </footer>
+
+  <script type="module">
+    // --- Firebase imports ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getDatabase, ref, query, orderByChild, equalTo, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    // --- Firebase config ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-VDEzKeVVpOwE7rds6ofNsKvxK3mWIlE",
+      authDomain: "q-now-7d98a.firebaseapp.com",
+      databaseURL: "https://q-now-7d98a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "q-now-7d98a",
+      storageBucket: "q-now-7d98a.firebasestorage.app",
+      messagingSenderId: "72096271594",
+      appId: "1:72096271594:web:b86777a11af444aac49b93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    const authLink = document.getElementById("authLink");
+    const establishmentsList = document.getElementById("establishmentsList");
+
+    // --- Monitor authentication state ---
+    onAuthStateChanged(auth, (user) => {
+      const dropdownMenu = document.getElementById("dropdownMenu");
+      const logoutButton = document.getElementById("logoutButton");
+
+      if (user) {
+        // Display user email
+        authLink.textContent = user.email;
+
+        // Toggle dropdown menu
+        authLink.onclick = (e) => {
+          e.preventDefault();
+          dropdownMenu.style.display =
+            dropdownMenu.style.display === "block" ? "none" : "block";
+        };
+
+        // Logout button functionality
+        logoutButton.onclick = (e) => {
+          e.preventDefault();
+          signOut(auth).then(() => location.reload());
+          location.replace("Login.html")
+        };
+
+        // --- Fetch establishments owned by this user ---
+        const estRef = query(ref(db, "establishments"), orderByChild("ownerId"), equalTo(user.uid));
+        onValue(estRef, (snapshot) => {
+          establishmentsList.innerHTML = "";
+          if (!snapshot.exists()) {
+            establishmentsList.innerHTML = "<p><em>No establishments yet.</em></p>";
+            return;
+          }
+
+          snapshot.forEach((child) => {
+            const est = child.val();
+            const estKey = child.key;
+
+            // Create establishment card dynamically
+            const card = document.createElement("div");
+            card.className = "establishment-card";
+            card.innerHTML = `
+              <h3>${est.companyName || "Unnamed"}</h3>
+              <p>${est.address || "No address available"}</p>
+              <a href="establishment.html?id=${estKey}">Open Dashboard</a>
+            `;
+            establishmentsList.appendChild(card);
+          });
+        });
+      } else {
+        // User not logged in
+        authLink.textContent = "Login / Signup";
+        authLink.href = "Login.html";
+        authLink.onclick = null;
+        dropdownMenu.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
