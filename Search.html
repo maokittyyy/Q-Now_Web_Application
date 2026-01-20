@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Database Search | Q-Now</title>
+  <style>
+    :root {
+      --primary: #0077cc;
+      --primary-dark: #005fa3;
+      --accent: #00aaff;
+      --light-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #333;
+      --text-light: #555;
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      --radius: 10px;
+      --transition: all 0.25s ease;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      animation: fadeIn 0.5s ease;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: 0.3px;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    header a:hover {
+      color: var(--accent);
+    }
+
+    nav a {
+      color: #fff;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    nav a:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.6s ease;
+    }
+
+    h1 {
+      color: var(--primary-dark);
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p {
+      text-align: center;
+      color: var(--text-light);
+      margin-bottom: 25px;
+    }
+
+    .search-section {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    #searchInput {
+      flex: 1;
+      min-width: 250px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    #searchInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 6px rgba(0, 119, 204, 0.3);
+    }
+
+    .filter-select {
+      padding: 12px 12px;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      outline: none;
+      transition: var(--transition);
+      background: white;
+    }
+
+    .filter-select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-search {
+      padding: 12px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .btn-search:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-clear {
+      padding: 12px 24px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .btn-clear:hover {
+      background: #5a6268;
+    }
+
+    #results {
+      display: none;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .result-count {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .results-table thead {
+      background: var(--light-bg);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .results-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--primary-dark);
+      font-size: 0.95rem;
+    }
+
+    .results-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
+    }
+
+    .results-table tbody tr {
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .results-table tbody tr:hover {
+      background: #f0f0f0;
+    }
+
+    .results-table tbody tr.selected {
+      background: #e3f2fd;
+      border-left: 4px solid var(--primary);
+    }
+
+    .patient-detail-panel {
+      display: none;
+      background: var(--light-bg);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .patient-detail-panel.active {
+      display: block;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .patient-detail-panel.closing {
+      animation: fadeDown 0.3s ease forwards;
+    }
+
+    .detail-title {
+      color: var(--primary-dark);
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .detail-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .detail-row {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .detail-value {
+      color: var(--text-light);
+      padding: 8px;
+      background: white;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      font-weight: 500;
+    }
+
+    .btn.add {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn.add:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn.view {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .btn.view:hover {
+      background: #138496;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn.more-info {
+      background: #6f42c1;
+      color: white;
+    }
+
+    .btn.more-info:hover {
+      background: #5a32a3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
+    }
+
+    .btn.manual-add {
+      background: #fd7e14;
+      color: white;
+    }
+
+    .btn.manual-add:hover {
+      background: #e56a00;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(253, 126, 20, 0.3);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .pagination button:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-light);
+      font-size: 1.1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      font-size: 0.9rem;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-15px); }
+    }
+
+    .search-type-toggle {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toggle-btn {
+      padding: 10px 16px;
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .toggle-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .toggle-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2>Q-Now Patient Database</h2>
+    <nav>
+      <a href="Q-Now.html">Home</a>
+      <a href="Live_Queue.html">Live Queue</a>
+      <a href="Appointments.html">Appointments</a>
+      <a href="Analytics.html">Analytics</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Search Patient Database</h1>
+    <p>Enter patient details to find records.</p>
+
+    <div class="search-section">
+      <div class="search-type-toggle">
+        <button class="toggle-btn active" id="toggleName" data-type="name">By Name</button>
+        <button class="toggle-btn" id="togglePatientId" data-type="patientId">By Patient ID</button>
+      </div>
+      <input type="text" id="searchInput" placeholder="Search by name..." />
+      <select id="establishmentSelect" class="filter-select">
+        <option value="">All Records</option>
+        <option value="">Current Establishment</option>
+      </select>
+      <button class="btn-search" id="btnSearch">Search</button>
+      <button class="btn-clear" id="btnClear">Clear</button>
+    </div>
+
+    <div id="results">
+      <div class="results-header">
+        <h3 style="margin: 0; color: var(--primary-dark);">Search Results</h3>
+        <span class="result-count"><span id="resultCount">0</span> patient(s) found</span>
+      </div>
+
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Contact</th>
+            <th>Health Info</th>
+            <th>Last Appointment</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+        </tbody>
+      </table>
+
+      <div id="patientDetailPanel" class="patient-detail-panel">
+        <div class="detail-title">Patient Details</div>
+        <div class="detail-info">
+          <div class="detail-row">
+            <span class="detail-label">Full Name</span>
+            <span class="detail-value" id="detailName">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email</span>
+            <span class="detail-value" id="detailEmail">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Contact Number</span>
+            <span class="detail-value" id="detailContact">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Address</span>
+            <span class="detail-value" id="detailAddress">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Last Appointment</span>
+            <span class="detail-value" id="detailLastAppt">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Patient ID</span>
+            <span class="detail-value" id="detailUID">-</span>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn view" id="btnApptsDetail">View Appointments</button>
+          <button class="btn more-info" id="btnMoreInfo">More Info</button>
+          <button class="btn manual-add" id="btnManualAdd">Manual Add</button>
+        </div>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <div id="noResults" class="no-results" style="display: none;">
+      No patients found. Try adjusting your search criteria.
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Q-Now. All rights reserved.</p>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-VDEzKeVVpOwE7rds6ofNsKvxK3mWIlE",
+      authDomain: "q-now-7d98a.firebaseapp.com",
+      databaseURL: "https://q-now-7d98a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "q-now-7d98a",
+      storageBucket: "q-now-7d98a.firebasestorage.app",
+      messagingSenderId: "72096271594",
+      appId: "1:72096271594:web:b86777a11af444aac49b93"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const searchInput = document.getElementById("searchInput");
+    const establishmentSelect = document.getElementById("establishmentSelect");
+    const btnSearch = document.getElementById("btnSearch");
+    const btnClear = document.getElementById("btnClear");
+    const resultsDiv = document.getElementById("results");
+    const noResultsDiv = document.getElementById("noResults");
+    const resultsBody = document.getElementById("resultsBody");
+    const resultCount = document.getElementById("resultCount");
+    const paginationDiv = document.getElementById("pagination");
+    const toggleNameBtn = document.getElementById("toggleName");
+    const togglePatientIdBtn = document.getElementById("togglePatientId");
+
+    let allPatients = [];
+    let filteredPatients = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let selectedPatient = null;
+    let searchType = "name";
+
+    btnSearch.onclick = performSearch;
+    btnClear.onclick = clearSearch;
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") performSearch();
+    });
+
+    // Search type toggle
+    toggleNameBtn.onclick = () => {
+      searchType = "name";
+      updateSearchToggle();
+      searchInput.placeholder = "Search by name...";
+      searchInput.value = "";
+    };
+
+    togglePatientIdBtn.onclick = () => {
+      searchType = "patientId";
+      updateSearchToggle();
+      searchInput.placeholder = "Search by patient ID...";
+      searchInput.value = "";
+    };
+
+    function updateSearchToggle() {
+      toggleNameBtn.classList.remove("active");
+      togglePatientIdBtn.classList.remove("active");
+      if (searchType === "name") {
+        toggleNameBtn.classList.add("active");
+      } else {
+        togglePatientIdBtn.classList.add("active");
+      }
+    }
+
+    // Load establishments on page load
+    window.addEventListener("load", () => {
+      const estId = localStorage.getItem("currentEstablishmentId");
+      if (estId) {
+        db.ref(`establishments/${estId}`).once("value")
+          .then(snapshot => {
+            if (snapshot.exists()) {
+              establishmentSelect.innerHTML = `<option value="${estId}">${snapshot.val().name || "Current Establishment"}</option>`;
+            }
+          });
+      }
+    });
+
+    // Close detail panel when clicking outside
+    document.addEventListener("click", (e) => {
+      const detailPanel = document.getElementById("patientDetailPanel");
+      const resultsTable = document.querySelector(".results-table");
+      
+      if (selectedPatient && 
+          !detailPanel.contains(e.target) && 
+          !resultsTable.contains(e.target)) {
+        deselectPatient();
+      }
+    });
+
+    function performSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+
+      db.ref("patients").once("value")
+        .then(snapshot => {
+          allPatients = [];
+          if (snapshot.exists()) {
+            snapshot.forEach(child => {
+              const patient = child.val();
+              allPatients.push({ ...patient, uid: child.key });
+            });
+          }
+
+          filteredPatients = allPatients.filter(patient => {
+            if (!query) return true;
+            
+            if (searchType === "name") {
+              return patient.name && patient.name.toLowerCase().includes(query);
+            } else {
+              return patient.uid && patient.uid.toLowerCase().includes(query);
+            }
+          });
+
+          currentPage = 1;
+          displayResults();
+        })
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function displayResults() {
+      resultsBody.innerHTML = "";
+      
+      if (filteredPatients.length === 0) {
+        resultsDiv.style.display = "none";
+        noResultsDiv.style.display = "block";
+        return;
+      }
+
+      resultsDiv.style.display = "block";
+      noResultsDiv.style.display = "none";
+      resultCount.textContent = filteredPatients.length;
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const pagePatients = filteredPatients.slice(startIndex, endIndex);
+
+      pagePatients.forEach(patient => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><span class="patient-name">${patient.name || "N/A"}</span></td>
+          <td>${patient.email || "N/A"}</td>
+          <td>${patient.contactNumber || "N/A"}</td>
+          <td>${patient.healthInfo || "N/A"}</td>
+          <td>${patient.lastAppointment || "None"}</td>
+        `;
+        row.onclick = () => selectPatient(patient, row);
+        resultsBody.appendChild(row);
+      });
+
+      displayPagination();
+      deselectPatient();
+    }
+
+    function selectPatient(patient, row) {
+      document.querySelectorAll("#resultsBody tr").forEach(tr => tr.classList.remove("selected"));
+      row.classList.add("selected");
+      
+      selectedPatient = patient;
+      
+      document.getElementById("detailName").textContent = patient.name || "N/A";
+      document.getElementById("detailEmail").textContent = patient.email || "N/A";
+      document.getElementById("detailContact").textContent = patient.contactNumber || "N/A";
+      document.getElementById("detailAddress").textContent = patient.address || "N/A";
+      document.getElementById("detailLastAppt").textContent = patient.lastAppointment || "None";
+      document.getElementById("detailUID").textContent = patient.uid || "N/A";
+      
+      const detailPanel = document.getElementById("patientDetailPanel");
+      detailPanel.classList.remove("closing");
+      detailPanel.classList.add("active");
+    }
+
+    function deselectPatient() {
+      selectedPatient = null;
+      const detailPanel = document.getElementById("patientDetailPanel");
+      detailPanel.classList.add("closing");
+      setTimeout(() => {
+        detailPanel.classList.remove("active", "closing");
+      }, 300);
+      document.querySelectorAll("#resultsBody tr").forEach(tr => tr.classList.remove("selected"));
+    }
+
+    function displayPagination() {
+      paginationDiv.innerHTML = "";
+      const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+
+      if (totalPages <= 1) return;
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = i === currentPage ? "active" : "";
+        btn.onclick = () => {
+          currentPage = i;
+          displayResults();
+          window.scrollTo(0, 0);
+        };
+        paginationDiv.appendChild(btn);
+      }
+    }
+
+    function clearSearch() {
+      searchInput.value = "";
+      resultsDiv.style.display = "none";
+      noResultsDiv.style.display = "none";
+      filteredPatients = [];
+      currentPage = 1;
+      deselectPatient();
+    }
+
+    document.getElementById("btnApptsDetail").onclick = () => {
+      if (!selectedPatient) return;
+      viewAppointments(selectedPatient.uid);
+    };
+
+    document.getElementById("btnMoreInfo").onclick = () => {
+      if (!selectedPatient) return;
+      window.location.href = `Patient_Detail.html?uid=${selectedPatient.uid}`;
+    };
+
+    document.getElementById("btnManualAdd").onclick = () => {
+      if (!selectedPatient) return;
+      alert("Manual Add feature coming soon.");
+    };
+
+    function viewAppointments(uid) {
+      window.location.href = `appointments.html?uid=${uid}`;
+    }
+  </script>
+</body>
+</html>
