@@ -159,8 +159,8 @@
       <a href="Analytics.html" class="btn">Open Analytics</a>
     </div>
     <div class="card">
-      <h3>MediCard Scanning</h3>
-      <p>Scan patient MediCards now</p>
+      <h3>Database Searching</h3>
+      <p>Search the database now.</p>
       <a href="Search.html" class="btn">Search Database</a>
     </div>
 
@@ -286,7 +286,7 @@
     });
     queuePreview.textContent = waiting === 0 && !servingDetail
       ? "No active queue."
-      : `${waiting} waiting • ${servingDetail ? "Serving: " + servingDetail : "None serving"}`;
+      : `${waiting} waiting • ${servingDetail ? "In Service: " + servingDetail : "None in service"}`;
   });
 
   // --- Analytics ---

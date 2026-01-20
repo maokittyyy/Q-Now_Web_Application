@@ -28,6 +28,21 @@
             font-weight: 500;
         }
 
+        .back-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.25s ease;
+        }
+
+        .back-btn:hover {
+            color: #00aaff;
+            transform: translateY(-2px);
+        }
+
         .container {
             max-width: 900px;
             margin: 20px auto;
@@ -81,7 +96,7 @@
 <body>
 <header>
     <h2 id="counterName">Counter</h2>
-    <a href="#" onclick="history.back()">← Back</a>
+    <button class="back-btn" onclick="history.back()">← Back</button>
 </header>
 
 <div class="container">
@@ -639,7 +654,7 @@ queueRef
         const estNameVal = estSnap.val() || "Unknown Establishment";
         const counterNameVal = counterSnap.val() || "Unknown Counter";
 
-        /* ------------------- Send "now being served" notification ---------------- */
+        /* ------------------- Send "now in service" notification ------------------- */
 
         if (data.uid) {
             try {
@@ -655,7 +670,7 @@ queueRef
                     estName: estNameVal,
                     counterId,
                     counterName: counterNameVal,
-                    message: "You are now being served.",
+                    message: "You are now in service.",
                     timestamp: now
                 });
 

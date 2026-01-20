@@ -20,13 +20,41 @@
   h2{ color:var(--primary-dark); margin-top:0; }
   h3{ color:var(--text-light); margin-bottom:8px; }
   .schedule{ overflow-x:auto; margin-top:12px; }
+  
+  .schedule-legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: var(--radius);
+    border: 1px solid #ddd;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+
+  .legend-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #999;
+  }
+
+  .legend-available { background: #90EE90; border: 1px solid #4CAF50; }
+  .legend-occupied { background: #FFB6C6; border: 1px solid #dc3545; }
+
   table{ border-collapse:collapse; width:100%; min-width:680px; border-radius:var(--radius); overflow:hidden; }
   th,td{ border:1px solid #ddd; padding:8px; text-align:center; vertical-align:middle; word-break:break-word; }
   th{ background:var(--primary); color:#fff; font-weight:600; }
-  td.empty{ background:#f9f9f9; cursor:pointer; transition:var(--transition); }
-  td.empty:hover{ background:#eef6ff; }
-  td.booked{ background:#d4edda; cursor:pointer; transition:var(--transition); }
-  td.booked:hover{ background:#c3e6cb; }
+  td.empty{ background:#90EE90; cursor:pointer; transition:var(--transition); border: 1px solid #4CAF50; }
+  td.empty:hover{ background:#7FD97F; }
+  td.booked{ background:#FFB6C6; cursor:pointer; transition:var(--transition); border: 1px solid #dc3545; position: relative; }
+  td.booked:hover{ background:#FF8FA3; }
   table td:first-child, table th:first-child{ width:120px; text-align:left; padding-left:10px; font-weight:bold; background:#f0f4f8; }
 
   .pending-card, .appt-card{ border:1px solid #ddd; background:#fff8e1; padding:12px; margin:10px 0; border-radius:var(--radius); box-shadow:var(--shadow); transition:var(--transition);}
@@ -70,6 +98,38 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   pointer-events: auto;  /* just to be explicit */
 }
+
+    .slot-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      z-index: 1000;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      display: none;
+      pointer-events: none;
+    }
+
+    .slot-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #333;
+    }
+
+    td.booked:hover .slot-tooltip {
+      display: block;
+    }
 </style>
 </head>
 <body>
@@ -177,6 +237,16 @@ function renderEstablishmentSection(estId, estData){
     <h3>Pending Appointment Requests</h3>
     <div id="pending_${estId}"><em>Loading pending requests...</em></div>
     <h3>Appointment Schedule (Next 2 Weeks)</h3>
+    <div class="schedule-legend">
+      <div class="legend-item">
+        <div class="legend-box legend-available"></div>
+        <span>Available</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box legend-occupied"></div>
+        <span>Occupied</span>
+      </div>
+    </div>
     <div class="schedule">
       <table>
         <thead id="scheduleHead_${estId}"></thead>
@@ -200,8 +270,13 @@ function buildScheduleForEst(estId,hours){
   if(!headEl||!bodyEl) return;
 
   let headHTML="<tr><th>Time</th>";
-  days.forEach(d=>headHTML+=`<th>${d.toLocaleDateString("en-PH",{weekday:"short",month:"short",day:"numeric",timeZone:tz})}</th>`);
-  headHTML+="</tr>"; headEl.innerHTML=headHTML;
+  days.forEach(d=>{
+    const dateStr = d.toLocaleDateString("en-PH",{month:"short",day:"numeric",timeZone:tz});
+    const dayStr = d.toLocaleDateString("en-PH",{weekday:"short",timeZone:tz});
+    headHTML+=`<th>${dateStr},${dayStr}</th>`;
+  });
+  headHTML+="</tr>"; 
+  headEl.innerHTML=headHTML;
 
   let bodyHTML=""; cellMaps[estId]={};
   for(let h=openHour;h<closeHour;h++){ for(let half=0;half<2;half++){
@@ -211,7 +286,7 @@ function buildScheduleForEst(estId,hours){
     days.forEach(d=>{
       const dateKey=d.toISOString().split("T")[0];
       const cellId=`${estId}_${dateKey}_${slotTime}`;
-      bodyHTML+=`<td id="${cellId}" class="empty">Available</td>`;
+      bodyHTML+=`<td id="${cellId}" class="empty"></td>`;
       cellMaps[estId][cellId]={date:dateKey,time:slotTime};
     });
     bodyHTML+="</tr>";
@@ -237,7 +312,7 @@ function listenAppointmentsForEst(estId){
     if(!cellMaps[estId]) return;
     Object.keys(cellMaps[estId]).forEach(cid=>{
       const c=document.getElementById(cid);
-      if(c){ c.className="empty"; c.textContent="Available"; c.dataset.apptKey=""; }
+      if(c){ c.className="empty"; c.innerHTML=""; c.dataset.apptKey=""; }
     });
     pendingEl.innerHTML="";
     if(!snap.exists()){ pendingEl.innerHTML="<div>No appointment requests.</div>"; appointmentCache[estId]={}; return; }
@@ -251,7 +326,13 @@ function listenAppointmentsForEst(estId){
         slots.forEach(s=>{
           const cid=`${estId}_${s.date}_${s.time}`;
           const cell=document.getElementById(cid);
-          if(cell){ cell.className="booked"; cell.textContent=`${appt.patientName||"Patient"} • ${appt.service||""}`; cell.dataset.apptKey=apptKey; }
+          if(cell){ 
+            cell.className="booked"; 
+            const patientName = escapeHtml(appt.patientName||"Patient");
+            const service = escapeHtml(appt.service||"");
+            cell.innerHTML = `<div class="slot-tooltip">${patientName}<br>${service}</div>`; 
+            cell.dataset.apptKey=apptKey; 
+          }
         });
       }
 

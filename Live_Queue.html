@@ -275,7 +275,7 @@
 
               let servingHtml = "";
               if (serving) {
-                servingHtml = `<br><span class="small">Now Serving: ${serving.patientName || "Unknown"} (${serving.age || "?"} y/o)</span>`;
+                servingHtml = `<br><span class="small">In Service: ${serving.patientName || "Unknown"} (${serving.age || "?"} y/o)</span>`;
               } else {
                 servingHtml = `<br><span class="small">Waiting: ${waitingCount} in queue</span>`;
               }
