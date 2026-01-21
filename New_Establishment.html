@@ -279,7 +279,12 @@
       const countersCount = parseInt(document.getElementById("counters").value);
       const counters = {};
       for (let i = 1; i <= countersCount; i++) {
-        counters[`counter${i}`] = { name: `Counter ${i}`, accepting: true };
+        counters[`counter${i}`] = { 
+          name: `Counter ${i}`, 
+          location: "", 
+          priorityLane: false,
+          accepting: true 
+        };
       }
 
       // Collect establishment data from form fields

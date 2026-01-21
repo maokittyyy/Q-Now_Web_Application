@@ -96,7 +96,13 @@
 <body>
 <header>
     <h2 id="counterName">Counter</h2>
-    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div style="display: flex; gap: 15px; align-items: center;">
+      <div id="counterDetails" style="color: white; text-align: right; font-size: 0.9rem;">
+        <div id="counterLocation"></div>
+        <div id="counterPriority"></div>
+      </div>
+      <button class="back-btn" onclick="history.back()">← Back</button>
+    </div>
 </header>
 
 <div class="container">
@@ -644,15 +650,19 @@ queueRef
 
         showCustomerInfo(displayData);
 
-        /* ------------------- Load Establishment + Counter Names ---------------- */
+        /* ------------------- Load Establishment + Counter Names + Details -------- */
 
         const [estSnap, counterSnap] = await Promise.all([
             estRef.child("companyName").once("value"),
-            counterRef.child("name").once("value")
+            counterRef.child("name").once("value"),
+            counterRef.child("location").once("value"),
+            counterRef.child("priorityLane").once("value")
         ]);
 
         const estNameVal = estSnap.val() || "Unknown Establishment";
         const counterNameVal = counterSnap.val() || "Unknown Counter";
+        const counterLocation = counterSnap.val() || "";
+        const isPriorityLane = counterSnap.val() || false;
 
         /* ------------------- Send "now in service" notification ------------------- */
 

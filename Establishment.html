@@ -40,7 +40,7 @@
     animation: slideDown 0.5s ease;
   }
 
-  header h2 { margin: 0; font-size: 1.3rem; }
+  header h2 { margin: 0; font-size: 1.3rem; color: white;}
   header a { color: white; text-decoration: none; transition: var(--transition); }
   header a:hover { color: var(--accent); transform: translateY(-2px); }
 
@@ -106,12 +106,93 @@
     box-shadow: var(--shadow);
     margin-bottom: 10px;
     transition: var(--transition);
+    position: relative;
   }
 
-  .counter:hover { background: #f0f8ff; transform: translateY(-2px); }
+  .counter:hover { background: #f0f8ff; transform: translateY(-2px); z-index: 10;}
   .counter input { border: none; font-size: 1rem; font-weight: 600; background: transparent; width: 160px; color: var(--primary-dark); }
 
-  canvas { max-width: 100%; margin-top: 10px; }
+  .counter-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .counter-location {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+
+  .counter-priority {
+    display: inline-block;
+    margin-top: 3px;
+    width: 90px;
+    background: #fff3cd;
+    color: #856404;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 2px;
+  }
+
+  .counter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .counter-menu-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: var(--transition);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .counter-menu-btn:hover { color: var(--primary); }
+
+  .counter-menu-options {
+    display: none;
+    position: absolute;
+    top: 35px;
+    right: 0;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    min-width: 160px;
+    overflow: hidden;
+  }
+
+  .counter-menu-options.active { display: block; animation: fadeIn 0.2s ease; }
+
+  .counter-menu-options button {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    border: none;
+    background: white;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+  }
+
+  .counter-menu-options button:hover { background: #f0f7ff; color: var(--primary); }
+
+  .counter-menu-options button:first-child { border-bottom: 1px solid #eee; }
 
   footer {
     text-align: center;
@@ -369,9 +450,31 @@ onValue(ref(db, "patients"), pSnap => {
       const div = document.createElement("div");
       div.className = "counter";
 
+      // Counter info section
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "counter-info";
+
       const nameInput = document.createElement("input");
       nameInput.value = counter.name || "Unnamed Counter";
       nameInput.onchange = () => update(ref(db, `establishments/${estId}/counters/${key}`), { name: nameInput.value });
+
+      const locationDiv = document.createElement("div");
+      locationDiv.className = "counter-location";
+      locationDiv.textContent = counter.location || "No location set";
+
+      infoDiv.appendChild(nameInput);
+      infoDiv.appendChild(locationDiv);
+
+      if (counter.priorityLane) {
+        const priorityBadge = document.createElement("span");
+        priorityBadge.className = "counter-priority";
+        priorityBadge.textContent = "♿ Priority Lane";
+        infoDiv.appendChild(priorityBadge);
+      }
+
+      // Actions section
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "counter-actions";
 
       const isOpen = counter.open ?? true;
       const statusBtn = document.createElement("button");
@@ -384,16 +487,57 @@ onValue(ref(db, "patients"), pSnap => {
       manageBtn.textContent = "Manage";
       manageBtn.onclick = () => window.location.href = `counter.html?estId=${estId}&counterId=${key}`;
 
-      div.appendChild(nameInput);
-      div.appendChild(statusBtn);
-      div.appendChild(manageBtn);
+      const menuBtn = document.createElement("button");
+      menuBtn.className = "counter-menu-btn";
+      menuBtn.textContent = "⋮";
+      menuBtn.title = "More options";
+
+      const menuOptions = document.createElement("div");
+      menuOptions.className = "counter-menu-options";
+
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit Counter";
+      editBtn.onclick = () => window.location.href = `Edit_Counter.html?estId=${estId}&counterId=${key}`;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete Counter";
+      deleteBtn.onclick = async () => {
+        if (confirm("Are you sure you want to delete this counter?")) {
+          try {
+            await set(ref(db, `establishments/${estId}/counters/${key}`), null);
+            alert("✅ Counter deleted successfully!");
+          } catch (error) {
+            alert("❌ Error deleting counter: " + error.message);
+          }
+        }
+      };
+
+      menuOptions.appendChild(editBtn);
+      menuOptions.appendChild(deleteBtn);
+
+      menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuOptions.classList.toggle("active");
+      });
+
+      document.addEventListener("click", () => {
+        menuOptions.classList.remove("active");
+      });
+
+      actionsDiv.appendChild(statusBtn);
+      actionsDiv.appendChild(manageBtn);
+      actionsDiv.appendChild(menuBtn);
+      actionsDiv.appendChild(menuOptions);
+
+      div.appendChild(infoDiv);
+      div.appendChild(actionsDiv);
       countersList.appendChild(div);
     });
   });
 
   function addCounter() {
     const newCounterRef = push(countersRef);
-    set(newCounterRef, { name: "New Counter", open: true , accepting: true, queue: {}});
+    set(newCounterRef, { name: "New Counter", location: "", priorityLane: false, open: true , accepting: true, queue: {} });
   }
   window.addCounter = addCounter;
 </script>
