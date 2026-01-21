@@ -141,6 +141,7 @@
       opacity: 0;
       transform: translateY(10px);
       animation: fadeUp 0.8s ease forwards;
+      position: relative;
     }
 
     .establishment-card:hover {
@@ -159,6 +160,59 @@
     }
 
     .establishment-card a:hover { background: var(--primary-dark); }
+
+    /* Menu button styles */
+    .menu-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: var(--transition);
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-btn:hover { color: var(--primary); }
+
+    .menu-options {
+      display: none;
+      position: absolute;
+      top: 35px;
+      right: 10px;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+      min-width: 180px;
+      overflow: hidden;
+    }
+
+    .menu-options.active { display: block; animation: fadeIn 0.2s ease; }
+
+    .menu-options button {
+      display: block;
+      width: 100%;
+      padding: 10px 15px;
+      border: none;
+      background: white;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+
+    .menu-options button:hover { background: #f0f7ff; color: var(--primary); }
+
+    .menu-options button:first-child { border-bottom: 1px solid #eee; }
 
     footer {
       text-align: center;
@@ -281,7 +335,7 @@
   <script type="module">
     // --- Firebase imports ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getDatabase, ref, query, orderByChild, equalTo, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+    import { getDatabase, ref, query, orderByChild, equalTo, onValue, set } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
     // --- Firebase config ---
@@ -342,11 +396,49 @@
             const card = document.createElement("div");
             card.className = "establishment-card";
             card.innerHTML = `
+              <button class="menu-btn" title="More options">⋮</button>
+              <div class="menu-options">
+                <button class="edit-btn" data-est-id="${estKey}"> Edit Establishment</button>
+                <button class="delete-btn" data-est-id="${estKey}"> Delete Establishment</button>
+              </div>
               <h3>${est.companyName || "Unnamed"}</h3>
               <p>${est.address || "No address available"}</p>
               <a href="establishment.html?id=${estKey}">Open Dashboard</a>
             `;
             establishmentsList.appendChild(card);
+
+            // Menu button toggle
+            const menuBtn = card.querySelector(".menu-btn");
+            const menuOptions = card.querySelector(".menu-options");
+
+            menuBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              menuOptions.classList.toggle("active");
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener("click", () => {
+              menuOptions.classList.remove("active");
+            });
+
+            // Edit button
+            card.querySelector(".edit-btn").addEventListener("click", () => {
+              window.location.href = `Edit_Establishment.html?id=${estKey}`;
+            });
+
+            // Delete button
+            card.querySelector(".delete-btn").addEventListener("click", async () => {
+              if (confirm("Are you sure you want to delete this establishment? Visit logs will be preserved.")) {
+                try {
+                  const estToDelete = ref(db, `establishments/${estKey}`);
+                  await set(estToDelete, null);
+                  alert("✅ Establishment deleted successfully!");
+                  card.remove();
+                } catch (error) {
+                  alert("❌ Error deleting establishment: " + error.message);
+                }
+              }
+            });
           });
         });
       } else {
