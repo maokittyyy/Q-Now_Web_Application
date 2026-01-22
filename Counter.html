@@ -6,133 +6,635 @@
     <title>Q-Now | Counter Management</title>
 
     <style>
+        /* =========================
+           Theme Variables
+           ========================= */
+        :root {
+            --primary: #0077cc;
+            --primary-dark: #005fa3;
+            --accent: #00aaff;
+            --light-bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --radius: 10px;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            --text: #333;
+            --text-light: #555;
+            --transition: all 0.25s ease;
+        }
+
+        /* =========================
+           Global Styles
+           ========================= */
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
             margin: 0;
-            background: #f5f7fa;
-            color: #333;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--light-bg);
+            color: var(--text);
+            animation: fadeInBody 0.6s ease;
         }
 
         header {
-            background: #0077cc;
-            color: #fff;
+            background: var(--primary);
+            color: white;
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            animation: slideDown 0.6s ease;
         }
 
-        header a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
+        header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        header .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        header #counterDetails {
+            color: white;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        header #counterLocation,
+        header #counterPriority {
+            margin: 2px 0;
         }
 
         .back-btn {
             background: none;
             border: none;
-            color: #fff;
+            color: white;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 500;
-            transition: all 0.25s ease;
+            transition: var(--transition);
+            padding: 8px 12px;
         }
 
         .back-btn:hover {
-            color: #00aaff;
+            color: var(--accent);
             transform: translateY(-2px);
         }
 
+        /* =========================
+           Main Content
+           ========================= */
         .container {
             max-width: 900px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 30px auto;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            animation: fadeUp 0.7s ease;
         }
 
-        h1, h2 {
-            color: #0077cc;
+        h2 {
+            color: var(--primary-dark);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
         }
 
         .queue-item {
             background: #f9fbff;
-            padding: 10px;
+            padding: 12px 15px;
             border: 1px solid #e0e7ef;
-            border-radius: 8px;
+            border-radius: var(--radius);
             margin-bottom: 10px;
+            transition: var(--transition);
+        }
+
+        .queue-item:hover {
+            background: #f0f8ff;
+            transform: translateY(-2px);
+        }
+
+        .queue-item b {
+            color: var(--primary-dark);
+            font-size: 1.05rem;
         }
 
         .btn {
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            padding: 8px 14px;
-            margin: 4px;
-            font-weight: 500;
+            padding: 10px 16px;
+            margin: 6px 4px 6px 0;
+            font-weight: 600;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         .next { background: #28a745; color: #fff; }
+        .next:hover { background: #218838; }
+        
         .reject { background: #dc3545; color: #fff; }
-        .toggle { background: #0077cc; color: #fff; }
+        .reject:hover { background: #c82333; }
+        
+        .toggle { background: var(--primary); color: #fff; }
+        .toggle:hover { background: var(--primary-dark); }
+        
         .accept { background: #17a2b8; color: #fff; }
+        .accept:hover { background: #138496; }
+        
         .end { background: #ffc107; color: #000; }
+        .end:hover { background: #e0a800; }
 
         .small {
             font-size: 0.9rem;
-            color: #555;
+            color: var(--text-light);
         }
 
         #customerInfo {
             background: #f9fbff;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: var(--radius);
             border: 1px solid #e0e7ef;
+            margin: 1rem 0;
+        }
+
+        #customerInfo h3 {
+            color: var(--primary-dark);
+            margin-top: 0;
+        }
+
+        #customerInfo p {
+            margin: 8px 0;
+            color: var(--text);
+        }
+
+        #customerInfo strong {
+            color: var(--primary-dark);
+        }
+
+        /* =========================
+           Animations
+           ========================= */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInBody {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* =========================
+           Collapsible Sections
+           ========================= */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            margin-top: 1.5rem;
+            margin-bottom: 0;
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background: #004a80;
+            transform: translateY(-1px);
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-toggle {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .section-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            background: #f9fbff;
+            border: 1px solid #e0e7ef;
+            border-top: none;
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
+            padding: 16px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            padding: 0 16px;
+            overflow: hidden;
+        }
+
+        .section-empty {
+            color: var(--text-light);
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .section-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* =========================
+           Current Customer Section
+           ========================= */
+        .current-customer-section {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease;
+        }
+
+        .current-customer-section h2 {
+            margin-top: 0;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .current-customer-section #customerInfo {
+            background: white;
+            border: 1px solid var(--primary);
+            margin: 1rem 0 0 0;
+        }
+
+        .current-customer-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .current-customer-actions .btn {
+            margin: 0;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* =========================
+           Patient Info Card (Clickable)
+           ========================= */
+        .patient-info-card {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .patient-info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 119, 204, 0.2);
+        }
+
+        .patient-info-card h3 {
+            margin: 0 0 12px 0;
+            color: var(--primary-dark);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .patient-info-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .patient-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .patient-info-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .patient-info-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .patient-info-card .open-profile {
+            font-size: 0.75rem;
+            color: var(--primary);
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        .accepting-toggle-container {
+            margin-top: 2rem;
+            padding: 16px;
+            background: var(--light-bg);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-checkbox {
+            width: 50px;
+            height: 28px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-checkbox input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-checkbox input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        .toggle-checkbox input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .toggle-status {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin-left: 12px;
+        }
+
+        .toggle-status.open {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .toggle-status.closed {
+            background: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
 
 <body>
-<header>
-    <h2 id="counterName">Counter</h2>
-    <div style="display: flex; gap: 15px; align-items: center;">
-      <div id="counterDetails" style="color: white; text-align: right; font-size: 0.9rem;">
-        <div id="counterLocation"></div>
-        <div id="counterPriority"></div>
-      </div>
-      <button class="back-btn" onclick="history.back()">← Back</button>
+    <header>
+        <h1 id="counterName">Counter</h1>
+        <div class="header-actions">
+            <div id="counterDetails">
+                <div id="counterLocation"></div>
+                <div id="counterPriority"></div>
+            </div>
+            <button class="back-btn" onclick="history.back()">← Back</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- =========================
+             Patient Info Card (Clickable)
+             ========================= -->
+        <div class="patient-info-card" id="patientInfoCard" style="display: none;">
+            <h3>👤 Currently Being Served</h3>
+            <div class="patient-info-details">
+                <div class="patient-info-item">
+                    <span class="patient-info-label">Name</span>
+                    <span class="patient-info-value" id="patientInfoName">-</span>
+                </div>
+                <div class="patient-info-item">
+                    <span class="patient-info-label">Age</span>
+                    <span class="patient-info-value" id="patientInfoAge">-</span>
+                </div>
+                <div class="patient-info-item">
+                    <span class="patient-info-label">Reason</span>
+                    <span class="patient-info-value" id="patientInfoReason">-</span>
+                </div>
+                <div class="patient-info-item">
+                    <span class="patient-info-label">Special Conditions</span>
+                    <span class="patient-info-value" id="patientInfoConditions">None</span>
+                </div>
+            </div>
+            <div class="patient-info-card .open-profile">👆 Click to view full details</div>
+        </div>
+
+        <!-- =========================
+             Accepting Toggle
+             ========================= -->
+        <div class="accepting-toggle-container">
+            <label class="toggle-label">
+                <span>🔔 Accepting Customers</span>
+                <div class="toggle-checkbox">
+                    <input type="checkbox" id="acceptToggle" />
+                    <span class="toggle-slider"></span>
+                </div>
+            </label>
+            <span class="toggle-status" id="toggleStatus">Offline</span>
+        </div>
+
+        <!-- =========================
+             Requests Section
+             ========================= -->
+        <div>
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>
+                    📋 Queue Requests
+                    <span class="section-count" id="requestsCount">0</span>
+                </h2>
+                <span class="section-toggle"></span>
+            </div>
+            <div class="section-content">
+                <div id="requestsList">
+                    <div class="section-empty">No requests yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             Awaiting Arrival Section
+             ========================= -->
+        <div>
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>
+                    🚗 Awaiting Arrival
+                    <span class="section-count" id="awaitingArrivalCount">0</span>
+                </h2>
+                <span class="section-toggle"></span>
+            </div>
+            <div class="section-content">
+                <div id="awaitingArrivalList">
+                    <div class="section-empty">No patients awaiting arrival</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             Queue (Waiting) Section
+             ========================= -->
+        <div>
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>
+                    ⏳ Queue (Waiting)
+                    <span class="section-count" id="queueCount">0</span>
+                </h2>
+                <span class="section-toggle"></span>
+            </div>
+            <div class="section-content">
+                <div id="queueList">
+                    <div class="section-empty">No one waiting</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             Counter Controls
+             ========================= -->
+        <h2 style="margin-top: 2rem;">Counter Controls</h2>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn next" id="btnNext">➤ Admit Next</button>
+            <button class="btn end" id="btnEndService" style="display: none;">✓ End Service</button>
+            <button class="btn reject" id="btnNoShow" style="display: none;">⚠ Report as no-show</button>
+        </div>
     </div>
-</header>
 
-<div class="container">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
-    <h1>Requests</h1>
-    <div id="requestsList"><p>No requests yet</p></div>
+    <script>
+        /* =========================
+           Collapsible Sections
+           ========================= */
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector(".section-toggle");
 
-    <h1>Queue (Waiting)</h1>
-    <div id="queueList"><p>No one waiting</p></div>
+            content.classList.toggle("collapsed");
+            toggle.classList.toggle("collapsed");
+        }
 
-    <button class="btn next" id="btnNext">Admit Next</button>
-    <button class="btn end" id="btnEndService">End Service</button>
+        /* =========================
+           Update Section Counts
+           ========================= */
+        function updateSectionCount(elementId, count) {
+            const countEl = document.getElementById(elementId);
+            if (countEl) {
+                countEl.textContent = count;
+                countEl.style.display = count > 0 ? "inline-block" : "none";
+            }
+        }
 
-    <h2>Accepting Customers</h2>
-    <button class="btn toggle" id="acceptToggle">Toggle Accepting</button>
+        /* =========================
+           Update Patient Info Card
+           ========================= */
+        function updatePatientInfoCard(data) {
+            if (!data) {
+                document.getElementById("patientInfoCard").style.display = "none";
+                return;
+            }
 
-    <h2>Customer Info</h2>
-    <div id="customerInfo"><p>No customer selected</p></div>
+            document.getElementById("patientInfoName").textContent = data.name || data.patientName || "-";
+            document.getElementById("patientInfoAge").textContent = data.age || "-";
+            document.getElementById("patientInfoReason").textContent = data.reason || "-";
 
-    <button class="btn reject" id="btnReject">Clear Info</button>
-    <button class="btn reject" id="btnNoShow">Report as no-show</button>
+            let conditions = [];
+            if (data.pwd) conditions.push("PWD");
+            if (data.senior) conditions.push("Senior");
+            if (data.severecon) conditions.push("Severe");
+            document.getElementById("patientInfoConditions").textContent = conditions.length > 0 ? conditions.join(", ") : "None";
 
-</div>
+            document.getElementById("patientInfoCard").style.display = "block";
+        }
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-
-<script>
+        /* =========================
+           Open Patient Detail Page
+           ========================= */
+        function openPatientDetail(uid) {
+            if (!uid) {
+                alert("Cannot open patient details for guest users.");
+                return;
+            }
+            window.open(`Patient_Detail.html?uid=${uid}`, "_blank");
+        }
 
 /* ------------------------ FIREBASE CONFIG ------------------------ */
 
@@ -178,14 +680,15 @@ function initCounterPage() {
     const estRef = db.ref(`establishments/${estId}`);
 
     const requestsList = document.getElementById("requestsList");
+    const awaitingArrivalList = document.getElementById("awaitingArrivalList");
     const queueList = document.getElementById("queueList");
-    const customerInfo = document.getElementById("customerInfo");
+    const patientInfoCard = document.getElementById("patientInfoCard");
 
     const btnNext = document.getElementById("btnNext");
     const btnEndService = document.getElementById("btnEndService");
-    const btnReject = document.getElementById("btnReject");
     const acceptToggle = document.getElementById("acceptToggle");
     const btnNoShow = document.getElementById("btnNoShow");
+    const toggleStatus = document.getElementById("toggleStatus");
 
     const counterNameEl = document.getElementById("counterName");
 
@@ -203,31 +706,42 @@ function initCounterPage() {
         });
     });
 
-    /* ============================================================================
-   =====================  ACCEPTING REQUESTS TOGGLE  ==========================
-   ============================================================================ */
+    /* =========================================================================
+   =====================  ACCEPTING REQUESTS TOGGLE  =========================
+   ========================================================================== */
 
-      acceptToggle.onchange = () => {
-          const val = acceptToggle.checked;
-          acceptingRef.set(val);
-      };
+    acceptToggle.addEventListener("change", () => {
+        const val = acceptToggle.checked;
+        counterRef.update({ accepting: val });
+    });
 
-      acceptingRef.on("value", snap => {
-          acceptToggle.checked = snap.val() === true;
-      });
+    counterRef.on("value", snap => {
+        if (!snap.exists()) return;
+        
+        const counterData = snap.val();
+        const isAccepting = counterData.accepting === true;
+        
+        acceptToggle.checked = isAccepting;
+        toggleStatus.textContent = isAccepting ? "🟢 Online" : "🔴 Offline";
+        toggleStatus.className = isAccepting ? "toggle-status open" : "toggle-status closed";
+    });
 
-        /* ------------------------------- LOAD REQUESTS -------------------------------- */
+    /* ------------------------------- LOAD REQUESTS -------------------------------- */
 
     requestsRef.on("value", snap => {
 
         requestsList.innerHTML = "";
+        let requestCount = 0;
 
         if (!snap.exists()) {
-            requestsList.innerHTML = "<p>No requests yet</p>";
+            requestsList.innerHTML = "<div class=\"section-empty\">No requests yet</div>";
+            updateSectionCount("requestsCount", 0);
             return;
         }
 
         snap.forEach(reqSnap => {
+
+            requestCount++;
 
             const reqId = reqSnap.key;
             const reqData = reqSnap.val() || {};
@@ -244,12 +758,12 @@ function initCounterPage() {
             btnAccept.className = "btn accept";
             btnAccept.textContent = "Accept";
 
-            const btnReject = document.createElement("button");
-            btnReject.className = "btn reject";
-            btnReject.textContent = "Reject";
+            const btnRejectReq = document.createElement("button");
+            btnRejectReq.className = "btn reject";
+            btnRejectReq.textContent = "Reject";
 
             div.appendChild(btnAccept);
-            div.appendChild(btnReject);
+            div.appendChild(btnRejectReq);
             requestsList.appendChild(div);
 
             /* ------------------------------ ACCEPT REQUEST ------------------------------ */
@@ -264,7 +778,7 @@ function initCounterPage() {
                 const estName = estSnap.val() || "Unknown Establishment";
                 const counterName = counterSnap.val() || "Unknown Counter";
 
-                const newKey = queueRef.push().key;
+                const awaitingKey = db.ref(`establishments/${estId}/counters/${counterId}/awaitingArrival`).push().key;
                 const now = Date.now();
 
                 const updates = {};
@@ -295,13 +809,13 @@ function initCounterPage() {
                     }
                 }
 
-                /* ---------------- Add to Queue ---------------- */
+                /* -------- Add to Awaiting Arrival instead of Queue -------- */
 
-                updates[`establishments/${estId}/counters/${counterId}/queue/${newKey}`] =
+                updates[`establishments/${estId}/counters/${counterId}/awaitingArrival/${awaitingKey}`] =
                     Object.assign({}, reqData, patientExtra, {
-                        status: "waiting",
+                        status: "awaiting_arrival",
                         joinTime: now,
-                        queueKey: newKey,
+                        awaitingKey,
                         estId,
                         estName,
                         counterId,
@@ -316,24 +830,24 @@ function initCounterPage() {
 
                 if (reqData.uid) {
                     updates[`patients/${reqData.uid}/queueStatus`] = {
-                        status: "accepted",
+                        status: "awaiting_arrival",
                         estId,
                         estName,
                         counterId,
                         counterName,
-                        queueKey: newKey,
+                        awaitingKey,
                         timestamp: now
                     };
 
-                    updates[`patients/${reqData.uid}/activeQueues/${newKey}`] = {
+                    updates[`patients/${reqData.uid}/activeQueues/${awaitingKey}`] = {
                         ...patientExtra,
                         estId,
                         estName,
                         counterId,
                         counterName,
-                        queueKey: newKey,
+                        awaitingKey,
                         joinTime: now,
-                        status: "waiting",
+                        status: "awaiting_arrival",
                         reason: reqData.reason || null
                     };
 
@@ -346,7 +860,7 @@ function initCounterPage() {
                         estName,
                         counterId,
                         counterName,
-                        message: "Queue request accepted",
+                        message: "Queue request accepted. Please arrive at the establishment and scan your Health Pass.",
                         timestamp: now
                     };
                 }
@@ -356,7 +870,7 @@ function initCounterPage() {
 
             /* ------------------------------ REJECT REQUEST ------------------------------ */
 
-            btnReject.onclick = async () => {
+            btnRejectReq.onclick = async () => {
 
                 const now = Date.now();
                 const updates = {};
@@ -392,11 +906,50 @@ function initCounterPage() {
             };
 
         }); // end forEach request
+
+        updateSectionCount("requestsCount", requestCount);
     }); // end request listener
 
-    /* =======================================================================
-   ===============  NO-SHOW REPORT + TIMER LOGIC  ========================
-   ======================================================================= */
+    /* ==========================================================================
+       AWAITING ARRIVAL LIST (Template - no arrival logic yet)
+       ========================================================================== */
+
+    db.ref(`establishments/${estId}/counters/${counterId}/awaitingArrival`).on("value", snap => {
+
+        awaitingArrivalList.innerHTML = "";
+        let awaitingCount = 0;
+
+        if (!snap.exists()) {
+            awaitingArrivalList.innerHTML = "<div class=\"section-empty\">No patients awaiting arrival</div>";
+            updateSectionCount("awaitingArrivalCount", 0);
+            return;
+        }
+
+        snap.forEach(awaitingSnap => {
+
+            awaitingCount++;
+
+            const awaitingKey = awaitingSnap.key;
+            const awaitingData = awaitingSnap.val() || {};
+
+            const div = document.createElement("div");
+            div.className = "queue-item";
+            div.innerHTML = `
+                <b>${awaitingData.patientName || awaitingData.name || "Unknown"}</b><br>
+                <span class="small">Reason: ${awaitingData.reason || "-"}</span><br>
+                <span class="small" style="color: #ffc107;">⏱ Awaiting Health Gate scan...</span>
+            `;
+
+            awaitingArrivalList.appendChild(div);
+
+        });
+
+        updateSectionCount("awaitingArrivalCount", awaitingCount);
+    });
+
+    /* ============================================================================
+   =====================  NO-SHOW REPORT + TIMER LOGIC  ========================
+   ============================================================================ */
 
 /* Global interval for countdown */
 let noShowInterval = null;
@@ -501,7 +1054,7 @@ function startCountdown(expiresAt, queueKey, uid, estName, counterName) {
                 const mins = Math.floor(remaining / 60000);
                 const secs = Math.floor((remaining % 60000) / 1000);
                 btnNoShow.innerHTML =
-                    `Cancel No-Show (${mins}:${secs.toString().padStart(2, "0")})`;
+                    `⚠ Cancel No-Show (${mins}:${secs.toString().padStart(2, "0")})`;
             }
             return;
         }
@@ -558,9 +1111,10 @@ async function finalizeNoShow(queueKey, uid, estName, counterName) {
         .transaction(current => (current || 0) + 1);
 
     if (currentCustomerKey === queueKey) {
-        btnNoShow.innerHTML = "No-show finalized";
-        btnNoShow.disabled = true;
-        customerInfo.innerHTML = "<p>No customer selected</p>";
+        btnNoShow.innerHTML = "⚠ Report as no-show";
+        btnNoShow.style.display = "none";
+        btnEndService.style.display = "none";
+        patientInfoCard.style.display = "none";
         currentCustomerKey = null;
         currentCustomerData = null;
     }
@@ -611,8 +1165,7 @@ async function cancelNoShow(queueKey) {
     alert("No-show canceled.");
 
     // Reset UI
-    btnNoShow.innerHTML = "Report No-Show";
-    btnNoShow.disabled = false;
+    btnNoShow.innerHTML = "⚠ Report as no-show";
     btnNoShow.onclick = startNoShowReport;
 }
 
@@ -635,20 +1188,15 @@ queueRef
 
         currentCustomerKey = key;
         currentCustomerData = data;
+        patientInfoCard.style.display = "block";
+        btnEndService.style.display = "inline-block";
+        btnNoShow.style.display = "inline-block";
 
         // Disable admit button while someone is being served
         btnNext.disabled = true;
 
-        /* ------------------- Load full profile if registered ------------------- */
-
-        let displayData = data;
-
-        if (data.uid) {
-            const fullSnap = await patientsRef.child(data.uid).once("value");
-            displayData = Object.assign({}, fullSnap.val() || {}, data);
-        }
-
-        showCustomerInfo(displayData);
+        /* ------------------- Update patient info card ------------------- */
+        updatePatientInfoCard(data);
 
         /* ------------------- Load Establishment + Counter Names + Details -------- */
 
@@ -659,16 +1207,13 @@ queueRef
             counterRef.child("priorityLane").once("value")
         ]);
 
-        const estNameVal = estSnap.val() || "Unknown Establishment";
-        const counterNameVal = counterSnap.val() || "Unknown Counter";
-        const counterLocation = counterSnap.val() || "";
-        const isPriorityLane = counterSnap.val() || false;
-
         /* ------------------- Send "now in service" notification ------------------- */
 
         if (data.uid) {
             try {
                 const now = Date.now();
+                const estNameVal = estSnap.val() || "Unknown Establishment";
+                const counterNameVal = counterSnap.val() || "Unknown Counter";
 
                 const notifRef = db
                     .ref(`patients/${data.uid}/notifications`)
@@ -701,25 +1246,30 @@ queueRef
     .on("value", snap => {
 
         queueList.innerHTML = "";
+        let queueItemCount = 0;
 
         if (!snap.exists()) {
-            queueList.innerHTML = "<p>No one waiting</p>";
+            queueList.innerHTML = "<div class=\"section-empty\">No one waiting</div>";
+            updateSectionCount("queueCount", 0);
             return;
         }
 
         snap.forEach(c => {
+            queueItemCount++;
             const v = c.val() || {};
 
             const el = document.createElement("div");
             el.className = "queue-item";
 
             el.innerHTML = `
-                <b>${v.patientName || "Unknown"}</b><br>
+                <b>${v.patientName || v.name || "Unknown"}</b><br>
                 <span class="small">Reason: ${v.reason || "-"}</span>
             `;
 
             queueList.appendChild(el);
         });
+
+        updateSectionCount("queueCount", queueItemCount);
     });
 
     /* ============================================================================
@@ -782,16 +1332,12 @@ btnNext.onclick = async () => {
 
         currentCustomerKey = key;
         currentCustomerData = data;
+        patientInfoCard.style.display = "block";
+        btnEndService.style.display = "inline-block";
+        btnNoShow.style.display = "inline-block";
 
-        /* ---------------- Load full profile if registered ---------------- */
-
-        if (data.uid) {
-            const full = await patientsRef.child(data.uid).once("value");
-            const info = Object.assign({}, full.val() || {}, data);
-            showCustomerInfo(info);
-        } else {
-            showCustomerInfo(data);
-        }
+        /* ------------------- Update patient info card ------------------- */
+        updatePatientInfoCard(data);
     });
 };
 
@@ -888,44 +1434,21 @@ btnEndService.onclick = async () => {
 
     /* ---------------- Reset UI ---------------- */
 
-    customerInfo.innerHTML = "<p>No customer selected</p>";
+    patientInfoCard.style.display = "none";
+    btnEndService.style.display = "none";
+    btnNoShow.style.display = "none";
 
     currentCustomerKey = null;
     currentCustomerData = null;
+    btnNext.disabled = false;
 };
 
-/* ============================================================================
-   ========================  SHOW CUSTOMER INFO BOX  ==========================
-   ============================================================================ */
-
-window.showCustomerInfo = function (data) {
-
-    customerInfo.innerHTML = `
-        <h3>Customer Info</h3>
-        <p><strong>Name:</strong> ${data.name || data.patientName || "-"}</p>
-        <p><strong>Age:</strong> ${data.age || "-"}</p>
-        <p><strong>Gender:</strong> ${data.gender || "-"}</p>
-        <p><strong>Address:</strong> ${data.address || "-"}</p>
-        <p><strong>Phone:</strong> ${data.phone || data.contactNumber || "-"}</p>
-
-        <p><strong>Reason:</strong> ${data.reason || "-"}</p>
-
-        <p><strong>Special Conditions:</strong> 
-            ${data.pwd ? "PWD " : ""} 
-            ${data.senior ? "Senior " : ""} 
-            ${data.severecon ? "Severe Condition " : ""} 
-            ${
-                !data.pwd && !data.senior && !data.severecon
-                    ? "None"
-                    : ""
-            }
-        </p>
-    `;
-};
-
-window.hideCustomerInfo = function () {
-    customerInfo.innerHTML = "<p>No customer selected</p>";
-};
+/* ------------------- Add click handler for patient info card ------------------- */
+document.getElementById("patientInfoCard").addEventListener("click", () => {
+    if (currentCustomerData && currentCustomerData.uid) {
+        openPatientDetail(currentCustomerData.uid);
+    }
+});
 
 /* --------------------------- RESTORE NO-SHOW TIMERS --------------------------- */
 
@@ -951,7 +1474,6 @@ function restoreNoShowTimers() {
 
 // Call this at the end of initCounterPage
 restoreNoShowTimers();
-
 }
 
 </script>
