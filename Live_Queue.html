@@ -34,6 +34,7 @@
       background: var(--light-bg);
       color: var(--text);
       animation: fadeInBody 0.8s ease;
+      padding-top: 65px;
     }
 
     header {
@@ -45,19 +46,39 @@
       align-items: center;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       animation: slideDown 0.6s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      width: 100%;
+      box-sizing: border-box;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     header h1 {
       margin: 0;
       font-size: 1.4rem;
+      flex: 0 0 auto;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex: 1 1 auto;
+      align-items: center;
     }
 
     nav a {
       color: white;
-      margin-left: 20px;
       text-decoration: none;
       font-weight: 500;
       transition: var(--transition);
+      white-space: nowrap;
+      font-size: 0.9rem;
     }
 
     nav a:hover {

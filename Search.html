@@ -24,6 +24,7 @@
       background: var(--light-bg);
       color: var(--text);
       animation: fadeIn 0.5s ease;
+      padding-top: 65px;
     }
 
     header {
@@ -34,12 +35,22 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      width: 100%;
+      box-sizing: border-box;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     header h2 {
       margin: 0;
       font-size: 1.3rem;
       letter-spacing: 0.3px;
+      flex: 0 0 auto;
     }
 
     header a {
@@ -52,12 +63,22 @@
       color: var(--accent);
     }
 
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex: 1 1 auto;
+    }
+
     nav a {
       color: #fff;
-      margin-left: 20px;
+      margin-left: 0;
       text-decoration: none;
       font-weight: 500;
       transition: var(--transition);
+      white-space: nowrap;
+      font-size: 0.9rem;
     }
 
     nav a:hover {

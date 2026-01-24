@@ -24,6 +24,7 @@
       background: var(--light-bg);
       color: var(--text);
       animation: fadeIn 0.5s ease;
+      padding-top: 65px;
     }
 
     header {
@@ -34,18 +35,29 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      width: 100%;
+      box-sizing: border-box;
+      flex-wrap: wrap;
     }
 
     header h2 {
       margin: 0;
       font-size: 1.3rem;
       letter-spacing: 0.3px;
+      flex: 0 0 auto;
     }
 
     header a {
       color: white;
       text-decoration: none;
       transition: var(--transition);
+      white-space: nowrap;
+      font-size: 0.9rem;
     }
 
     header a:hover {

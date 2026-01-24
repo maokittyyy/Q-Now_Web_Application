@@ -31,6 +31,7 @@
             background: var(--light-bg);
             color: var(--text);
             animation: fadeInBody 0.6s ease;
+            padding-top: 65px;
         }
 
         header {
@@ -42,29 +43,36 @@
             align-items: center;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             animation: slideDown 0.6s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            width: 100%;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         header h1 {
             margin: 0;
             font-size: 1.4rem;
             font-weight: 600;
+            flex: 0 0 auto;
         }
 
         header .header-actions {
             display: flex;
             gap: 15px;
             align-items: center;
+            flex: 0 0 auto;
         }
 
         header #counterDetails {
             color: white;
             text-align: right;
-            font-size: 0.9rem;
-        }
-
-        header #counterLocation,
-        header #counterPriority {
-            margin: 2px 0;
+            font-size: 0.85rem;
+            white-space: nowrap;
         }
 
         .back-btn {
@@ -76,6 +84,7 @@
             font-weight: 500;
             transition: var(--transition);
             padding: 8px 12px;
+            white-space: nowrap;
         }
 
         .back-btn:hover {
@@ -1474,7 +1483,7 @@ function restoreNoShowTimers() {
 
 // Call this at the end of initCounterPage
 restoreNoShowTimers();
-}
+}      
 
 </script>
 </body>

@@ -10,10 +10,11 @@
     --light-bg:#f5f7fa;--card-bg:#ffffff;--text:#333;--text-light:#555;
     --shadow:0 4px 8px rgba(0,0,0,0.08);--radius:10px;--transition:all .25s ease;
   }
-  body{ margin:0; font-family:'Segoe UI',Arial,sans-serif; background:var(--light-bg); color:var(--text); }
-  header{ background:var(--primary); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); }
-  header h1{ margin:0; font-size:1.3rem; }
-  nav a{ color:#fff; margin-left:20px; text-decoration:none; font-weight:500; transition:var(--transition); }
+  body{ margin:0; font-family:'Segoe UI',Arial,sans-serif; background:var(--light-bg); color:var(--text); padding-top:65px; }
+  header{ background:var(--primary); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); position:fixed; top:0; left:0; right:0; z-index:1000; width:100%; box-sizing:border-box; flex-wrap:wrap; gap:10px; }
+  header h1{ margin:0; font-size:1.3rem; flex:0 0 auto; }
+  nav { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; flex:1 1 auto; }
+  nav a{ color:#fff; margin-left:0; text-decoration:none; font-weight:500; transition:var(--transition); white-space:nowrap; font-size:0.9rem; }
   nav a:hover{ color:var(--accent); transform:translateY(-2px); }
 
   .container{ max-width:1100px; margin:30px auto; padding:25px; background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); }
@@ -478,6 +479,190 @@ function showModal(title,body,onAfterClose,options={}){ const {cancelLabel="OK",
 function closeModal(){ modalOverlay.style.display="none"; modalOverlay.setAttribute("aria-hidden","true"); modalBody.innerHTML=""; modalCancel.textContent="Cancel"; modalProceed.textContent="Proceed"; modalCancel.style.display="inline-block"; modalProceed.style.display="inline-block"; }
 
 modalOverlay.addEventListener("click",e=>{ if(e.target===modalOverlay) closeModal(); });
+
+// ======================== NO-SHOW LOGIC ========================
+
+async function reportNoShow(estId, apptKey, appt) {
+  if (!appt.patientId) {
+    alert("Cannot report no-show for appointments without a registered patient.");
+    return;
+  }
+
+  const patientId = appt.patientId;
+  const now = Date.now();
+  const twentyMinutes = 20 * 60 * 1000;
+  const expiresAt = now + twentyMinutes;
+
+  try {
+    const [estSnap, apptsRef] = await Promise.all([
+      db.ref(`establishments/${estId}`).child("companyName").once("value"),
+      db.ref()
+    ]);
+
+    const estName = estSnap.val() || "Unknown Establishment";
+
+    const updates = {};
+
+    // Create timer record
+    updates[`establishments/${estId}/appointments/${apptKey}/noShowTimer`] = {
+      patientId,
+      apptKey,
+      estId,
+      estName,
+      service: appt.service || "-",
+      createdAt: now,
+      expiresAt,
+      active: true
+    };
+
+    // Send first warning notification
+    const notifKey = db.ref(`patients/${patientId}/notifications`).push().key;
+    updates[`patients/${patientId}/notifications/${notifKey}`] = {
+      type: "appointment",
+      estId,
+      estName,
+      message: "⚠ You have been marked as a no-show. Please contact the establishment within 20 minutes to explain.",
+      timestamp: now
+    };
+
+    await db.ref().update(updates);
+
+    alert("No-show reported. 20-minute timer started.");
+    startNoShowCountdown(estId, apptKey, patientId, estName, expiresAt);
+  } catch (error) {
+    console.error("Error reporting no-show:", error);
+    alert("Failed to report no-show: " + error.message);
+  }
+}
+
+function startNoShowCountdown(estId, apptKey, patientId, estName, expiresAt) {
+  const timerDisplay = document.getElementById("noShowTimerDisplay");
+
+  // Clear existing interval if any
+  if (noShowIntervals[apptKey]) {
+    clearInterval(noShowIntervals[apptKey]);
+  }
+
+  noShowIntervals[apptKey] = setInterval(async () => {
+    const now = Date.now();
+    const remaining = expiresAt - now;
+
+    if (remaining > 0) {
+      const mins = Math.floor(remaining / 60000);
+      const secs = Math.floor((remaining % 60000) / 1000);
+      timerDisplay.textContent = `No-Show Timer: ${mins}:${secs.toString().padStart(2, "0")}`;
+      timerDisplay.style.display = "block";
+      return;
+    }
+
+    // Time expired → finalize no-show
+    clearInterval(noShowIntervals[apptKey]);
+    delete noShowIntervals[apptKey];
+    timerDisplay.style.display = "none";
+
+    await finalizeNoShowAppointment(estId, apptKey, patientId, estName);
+  }, 1000);
+}
+
+async function finalizeNoShowAppointment(estId, apptKey, patientId, estName) {
+  try {
+    const timerRef = db.ref(`establishments/${estId}/appointments/${apptKey}/noShowTimer`);
+    const timerSnap = await timerRef.once("value");
+
+    if (!timerSnap.exists()) return;
+
+    const updates = {};
+
+    // Update appointment status
+    updates[`establishments/${estId}/appointments/${apptKey}/status`] = "no_show";
+    updates[`establishments/${estId}/appointments/${apptKey}/noShowReportedAt`] = Date.now();
+    updates[`establishments/${estId}/appointments/${apptKey}/noShowTimer`] = null;
+
+    // Update patient record
+    updates[`patients/${patientId}/appointments/${apptKey}/status`] = "no_show";
+    updates[`patients/${patientId}/appointments/${apptKey}/noShowReportedAt`] = Date.now();
+
+    // Send final notification
+    const notifKey = db.ref(`patients/${patientId}/notifications`).push().key;
+    updates[`patients/${patientId}/notifications/${notifKey}`] = {
+      type: "appointment",
+      estId,
+      estName,
+      message: "❌ Your appointment has been marked as a final no-show.",
+      timestamp: Date.now()
+    };
+
+    await db.ref().update(updates);
+
+    console.log("No-show finalized for appointment:", apptKey);
+  } catch (error) {
+    console.error("Error finalizing no-show:", error);
+  }
+}
+
+async function cancelNoShowTimer(estId, apptKey, patientId, estName) {
+  try {
+    clearInterval(noShowIntervals[apptKey]);
+    delete noShowIntervals[apptKey];
+
+    const updates = {};
+    updates[`establishments/${estId}/appointments/${apptKey}/noShowTimer`] = null;
+
+    // Send cancellation notification
+    const notifKey = db.ref(`patients/${patientId}/notifications`).push().key;
+    updates[`patients/${patientId}/notifications/${notifKey}`] = {
+      type: "appointment",
+      estId,
+      estName,
+      message: "ℹ️ Your no-show report has been cancelled. Thank you for responding promptly!",
+      timestamp: Date.now()
+    };
+
+    await db.ref().update(updates);
+
+    const timerDisplay = document.getElementById("noShowTimerDisplay");
+    timerDisplay.style.display = "none";
+
+    alert("No-show timer cancelled.");
+  } catch (error) {
+    console.error("Error cancelling no-show timer:", error);
+  }
+}
+
+// Restore active no-show timers on page load
+function restoreNoShowTimers() {
+  const estIds = Object.keys(cellMaps);
+  
+  estIds.forEach(estId => {
+    db.ref(`establishments/${estId}/appointments`)
+      .orderByChild("status")
+      .equalTo("approved")
+      .once("value")
+      .then(snap => {
+        if (!snap.exists()) return;
+
+        snap.forEach(apptSnap => {
+          const appt = apptSnap.val();
+          const apptKey = apptSnap.key;
+
+          if (appt.noShowTimer && appt.noShowTimer.active && appt.noShowTimer.expiresAt > Date.now()) {
+            startNoShowCountdown(
+              estId,
+              apptKey,
+              appt.noShowTimer.patientId,
+              appt.noShowTimer.estName,
+              appt.noShowTimer.expiresAt
+            );
+          }
+        });
+      });
+  });
+}
+
+// Call after establishments are loaded
+setTimeout(() => {
+  restoreNoShowTimers();
+}, 2000);
 </script>
 </body>
 </html>
